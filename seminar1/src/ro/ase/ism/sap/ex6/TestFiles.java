@@ -45,6 +45,9 @@ public class TestFiles {
         DataOutputStream binaryWriter = new DataOutputStream(
                 new FileOutputStream(binaryFile));
         binaryWriter.writeUTF("hello world");
+        byte[] bytes = {0xA, 0x1, 0x2};
+        binaryWriter.write(bytes);
+
         binaryWriter.close();
 
         DataInputStream binaryReader = new DataInputStream(
@@ -52,8 +55,13 @@ public class TestFiles {
         String res2;
         while(binaryReader.available() != 0) {
             res2 = binaryReader.readUTF();
+            bytes = binaryReader.readNBytes(3);
             System.out.println(res2);
+            for (byte aByte : bytes) {
+                System.out.format("%02x ", aByte);
+            }
         }
+
         binaryReader.close();
     }
 }
