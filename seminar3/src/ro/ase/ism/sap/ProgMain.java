@@ -4,10 +4,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 
 public class ProgMain {
@@ -30,9 +30,16 @@ public class ProgMain {
         // solution to extend/reduce passwords to required size
         // solution to convert string based passwords to binary values
         // password based encryption (PBE)
-        AlgorithmParameters params = SymCipher.encryptPBE("test.txt", "test3.enc", "a", "salt",
-                10, "PBEWithMD5AndDES");
-        SymCipher.decryptPBE("test3.enc", "decrypt3.txt", "pass", "PBEWithMD5AndDES",
-                new PBESpec("salt".getBytes(), 10), params);
+        byte[] iv = new byte[16];
+        byte[] salt = new byte[16];
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(iv);
+        random.nextBytes(salt);
+
+
+        SymCipher.encryptPBE("test.txt", "test3.enc", "a", salt, iv, 10,
+                "PBEWithHmacSHA256AndAES_128");
+        SymCipher.decryptPBE("test3.enc", "decrypt3.txt", "a",
+                "PBEWithHmacSHA256AndAES_128");
     }
 }

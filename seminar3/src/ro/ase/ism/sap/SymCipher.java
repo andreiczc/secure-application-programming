@@ -7,6 +7,7 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.*;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 
 public class SymCipher {
@@ -145,16 +146,18 @@ public class SymCipher {
         writer.close();
     }
 
-    public static AlgorithmParameters encryptPBE(String inputFileName, String outputFileName, String key, String salt,
-                                     int iterationCount, String algorithm)
+    public static void encryptPBE(String inputFileName, String outputFileName, String key, byte[] salt, byte[] iv,
+                                  int iterationCount, String algorithm)
             throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
-            InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+            InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         File inputFile = new File(inputFileName);
         if (!inputFile.exists()) {
             throw new FileNotFoundException();
         }
 
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(inputFile));
+        byte[] fileContent = reader.readAllBytes();
+        reader.close();
 
         File outputFile = new File(outputFileName);
         if (outputFile.exists()) {
@@ -167,30 +170,19 @@ public class SymCipher {
         Cipher alg = Cipher.getInstance(algorithm);
 
         SecretKey generatedKey = SecretKeyFactory.getInstance(algorithm)
-                .generateSecret(new PBEKeySpec(key.toCharArray(), salt.getBytes(), iterationCount));
+                .generateSecret(new PBEKeySpec(key.toCharArray()));
 
-        alg.init(Cipher.ENCRYPT_MODE, generatedKey);
+        alg.init(Cipher.ENCRYPT_MODE, generatedKey, new PBEParameterSpec(salt, iterationCount, new IvParameterSpec(iv)));
 
-/*        byte[] buffer = new byte[alg.getBlockSize()];
-        int bytesRead;
+        writer.write(salt);
+        writer.write(iv);
+        writer.write(iterationCount);
+        writer.write(alg.doFinal(fileContent));
 
-        while ((bytesRead = reader.read(buffer)) != -1) {
-            writer.write(alg.update(buffer, 0, bytesRead));
-        }
-        writer.write(alg.doFinal());*/
-
-        byte[] fileContent = reader.readAllBytes();
-        byte[] encryptedContent = alg.doFinal(fileContent);
-        writer.write(encryptedContent);
-
-        reader.close();
         writer.close();
-
-        return alg.getParameters();
     }
 
-    public static void decryptPBE(String encryptedFileName, String outputFileName, String password, String algorithm,
-                                  PBESpec specs, AlgorithmParameters params)
+    public static void decryptPBE(String encryptedFileName, String outputFileName, String key, String algorithm)
             throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
             InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException {
         File encryptedFile = new File(encryptedFileName);
@@ -200,34 +192,29 @@ public class SymCipher {
 
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(encryptedFile));
 
-        File decryptedFile = new File(outputFileName);
-        if (decryptedFile.exists()) {
-            decryptedFile.delete();
-        }
-        decryptedFile.createNewFile();
-
-        BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(decryptedFile));
-
-        Cipher cipher = Cipher.getInstance(algorithm);
-        SecretKey key = SecretKeyFactory.getInstance(algorithm)
-                .generateSecret(new PBEKeySpec(password.toCharArray(), specs.getSalt(), specs.getIterationCount(),
-                        cipher.getBlockSize()));
-
-        cipher.init(Cipher.DECRYPT_MODE, key, params);
-
-        byte[] buffer = new byte[cipher.getBlockSize()];
-        int bytesRead;
-
-        /*while ((bytesRead = reader.read(buffer)) != -1) {
-            writer.write(cipher.update(buffer, 0, bytesRead));
-        }
-        writer.write(cipher.doFinal());*/
-
+        byte[] salt = reader.readNBytes(16);
+        byte[] iv = reader.readNBytes(16);
+        int iterationCount = reader.read();
         byte[] fileContent = reader.readAllBytes();
-        byte[] decryptedContent = cipher.doFinal(fileContent);
-        writer.write(decryptedContent);
 
         reader.close();
+
+        File outputFile = new File(outputFileName);
+        if (outputFile.exists()) {
+            outputFile.delete();
+        }
+        outputFile.createNewFile();
+
+        BufferedOutputStream writer = new BufferedOutputStream(new FileOutputStream(outputFile));
+
+        Cipher alg = Cipher.getInstance(algorithm);
+
+        SecretKey generatedKey = SecretKeyFactory.getInstance(algorithm)
+                .generateSecret(new PBEKeySpec(key.toCharArray()));
+
+        alg.init(Cipher.DECRYPT_MODE, generatedKey, new PBEParameterSpec(salt, iterationCount, new IvParameterSpec(iv)));
+
+        writer.write(alg.doFinal(fileContent));
         writer.close();
     }
 }
