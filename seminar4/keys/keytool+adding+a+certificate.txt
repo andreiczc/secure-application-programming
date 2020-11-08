@@ -1,1 +1,1 @@
-keytool -importcert -file certificate.cer -keystore keystore.jks -storepass passks -alias "webstudent"
+keytool -importcert -file certificate.cer -keystore ismkeystore.ks -storepass passks -alias "webstudent"
