@@ -1,0 +1,3 @@
+﻿  ex21.cpp
+C:\School\secure-application-programming\c++\Lab21\Lab21\ex21.cpp(7,1): warning C4326: return type of 'main' should be 'int' instead of 'void'
+  Lab21.vcxproj -> C:\School\secure-application-programming\c++\Lab21\Debug\Lab21.exe

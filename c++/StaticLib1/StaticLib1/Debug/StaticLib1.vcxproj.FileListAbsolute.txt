@@ -1,0 +1,2 @@
+C:\School\secure-application-programming\c++\StaticLib1\StaticLib1\Debug\StaticLib1.pdb
+C:\School\secure-application-programming\c++\StaticLib1\StaticLib1\StaticLib1\Debug\StaticLib1.pdb
