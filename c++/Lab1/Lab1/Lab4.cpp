@@ -35,22 +35,52 @@ int main()
 
 	fclose(publicKeyFile);
 
-	string originalText = "hello world";
+	auto* originalText = new char[512];
+	originalText[511] = '\0';
+	char currChar = 'a';
+	for (int i = 0; i < 511; ++i)
+	{
+		originalText[i] = currChar;
+		if (currChar == 'z') currChar = 'a';
+		else ++currChar;
+	}
 
-	auto* cipherText = new unsigned char[RSA_size(publicKey)];
 
 	/*
 	 * encrypt in chunks of RSA_size(publicKey)
 	 * pad only the last chunk
 	 */
+	const auto noChunks = (strlen(originalText) + 1) / RSA_size(publicKey);
+	const auto lastBlockSize = (strlen(originalText) + 1) % RSA_size(publicKey);
 
-	RSA_public_encrypt(originalText.length() + 1, (unsigned char*)originalText.c_str(), cipherText, publicKey,
-	                   RSA_PKCS1_PADDING);
-	
+	auto* cipherText = new unsigned char[RSA_size(publicKey) * (noChunks + 1)];
 
-	auto* plainText = new unsigned char[RSA_size(privateKey)];
+	for (auto i = 0; i < noChunks; ++i)
+	{
+		RSA_public_encrypt(RSA_size(publicKey), (unsigned char*)(&originalText[RSA_size(publicKey) * i]),
+		                   &cipherText[RSA_size(publicKey) * i], publicKey,RSA_NO_PADDING);
+	}
+	// do final
+	if (lastBlockSize)
+	{
+		RSA_public_encrypt(lastBlockSize, (unsigned char*)(&originalText[noChunks]), &cipherText[noChunks], publicKey,
+		                   RSA_PKCS1_PADDING);
+	}
 
-	RSA_private_decrypt(RSA_size(publicKey), cipherText, plainText, privateKey, RSA_PKCS1_PADDING);
+
+	auto* plainText = new unsigned char[RSA_size(publicKey) * (noChunks + 1)];
+
+	for (auto i = 0; i < noChunks; ++i)
+	{
+		RSA_private_decrypt(RSA_size(publicKey), &cipherText[RSA_size(publicKey) * i],
+		                    &plainText[RSA_size(publicKey) * i], privateKey,
+		                    RSA_NO_PADDING);
+	}
+	if (lastBlockSize)
+	{
+		RSA_private_decrypt(RSA_size(publicKey), &cipherText[noChunks], &plainText[noChunks], privateKey,
+		                    RSA_PKCS1_PADDING);
+	}
 
 	cout << plainText;
 
