@@ -1,2 +1,7 @@
-﻿  EVP_Example.cpp
+﻿  Assignment2.cpp
+C:\School\secure-application-programming\c++\Lab1\Lab1\Assignment2.cpp(149,27): warning C4244: 'initializing': conversion from 'const uintmax_t' to 'unsigned int', possible loss of data
+C:\School\secure-application-programming\c++\Lab1\Lab1\Assignment2.cpp(153,43): warning C4244: 'argument': conversion from 'const uintmax_t' to 'const int', possible loss of data
+C:\School\secure-application-programming\c++\Lab1\Lab1\Assignment2.cpp(187,47): warning C4244: 'initializing': conversion from 'const uintmax_t' to 'unsigned int', possible loss of data
+C:\School\secure-application-programming\c++\Lab1\Lab1\Assignment2.cpp(192,79): warning C4244: 'argument': conversion from 'const uintmax_t' to 'const int', possible loss of data
+C:\School\secure-application-programming\c++\Lab1\Lab1\Assignment2.cpp(206,74): warning C4244: 'argument': conversion from 'const uintmax_t' to 'const int', possible loss of data
   Lab1.vcxproj -> C:\School\secure-application-programming\c++\Lab1\Debug\Lab1.exe
